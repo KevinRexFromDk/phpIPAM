@@ -52,10 +52,10 @@ If you leave the input blank, the script will use the default values.
 
 Example of Input Prompt
 ```bash
-Enter database name (default '**phpipam**'): phpipam
-Enter database user (default '**phpipamadmin**'): phpipamadmin
-Enter password for user '**phpipamadmin**': [Hidden]
-Confirm password: [Hidden]
+Enter database name (default 'phpipam'): phpipam
+Enter database user (default 'phpipamadmin'): phpipamadmin
+Enter password for user 'phpipamadmin': P@ssw0rd
+Confirm password: P@ssw0rd
 ```
 
 # 📝 Post-Installation
