@@ -44,46 +44,32 @@ If you leave any input blank, the default values will be used.
 
 # 🔧 Customization
 You can customize the installation by entering the following parameters when prompted:
-
-Database Name 💬
-
-Database User 🔐
-
-Database Password 🔑
+ - Database Name 💬
+ - Database User 🔐
+ - Database Password 🔑
 
 If you leave the input blank, the script will use the default values.
 
 Example of Input Prompt
-bash
-Kopiér
-Rediger
-Enter database name (default 'phpipam'): phpipam
-Enter database user (default 'phpipamadmin'): phpipamadmin
-Enter password for user 'phpipamadmin': [Hidden]
+```bash
+Enter database name (default '**phpipam**'): phpipam
+Enter database user (default '**phpipamadmin**'): phpipamadmin
+Enter password for user '**phpipamadmin**': [Hidden]
 Confirm password: [Hidden]
+```
+
 # 📝 Post-Installation
 Once the script completes, you can finish the phpIPAM configuration by following these steps:
+ 1. Navigate to http://<your-server-ip>/phpipam
+ 2. Click the "New phpIPAM installation" button
+ 3. Click "Automatic database installation"
+ 4. Insert the following details:
+     - MySQL Username
+     - MySQL Password
+     - MySQL Location
+     - MySQL DB Name
+ 5. Click "Show advanced options" and uncheck "Create new database" and "Set permissions to tables"
+ 6. Click "Install phpIPAM database"
+ 7. Log in with the username admin and the password you set earlier
 
-Navigate to http://<your-server-ip>/phpipam
-
-Click the "New phpIPAM installation" button
-
-Click "Automatic database installation"
-
-Insert the following details:
-
-MySQL Username: phpipamadmin
-
-MySQL Password: [Hidden]
-
-MySQL Location: 127.0.0.1
-
-MySQL DB Name: phpipam
-
-Click "Show advanced options" and uncheck "Create new database" and "Set permissions to tables"
-
-Click "Install phpIPAM database"
-
-Log in with the username admin and the password you set earlier
-
-Enjoy using phpIPAM!
+## **Enjoy using phpIPAM!**
