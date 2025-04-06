@@ -6,53 +6,25 @@ handle_error() {
     exit 1  # Exit the script with an error status
 }
 
-# Function to check if an app is installed, and if not, install it
-check_or_install_app() {
-    local cmd=$1
-    local app=$2
-    local install_cmd=$3
-
-    echo -e "\e[34mChecking if $app is installed...\e[0m"
-    if command -v $cmd &> /dev/null; then
-        echo -e "\e[32m$app is installed\e[0m"
-    else
-        echo -e "\e[33m$app is not installed.\e[0m"
-        while true; do
-            read -p "Do you want to install $app? [Y/n]: " yn
-            yn=${yn:-Y}
-            case $yn in
-                [Yy]* )
-                    echo -e "\e[34mInstalling $app...\e[0m"
-                    eval $install_cmd || handle_error "Failed to install $app"
-                    echo -e "\e[32m$app installed successfully!\e[0m"
-                    break
-                    ;;
-                [Nn]* )
-                    echo -e "\e[31m$app will not be installed. Exiting...\e[0m"
-                    exit 1
-                    ;;
-                * ) echo "Please answer yes or no.";;
-            esac
-        done
-    fi
-}
-
 # Update and upgrade the system
 echo -e "\e[34mUpdating and upgrading the system...\e[0m"
 sudo apt-get update -y && sudo apt-get upgrade -y || handle_error "System update/upgrade failed."
 
-# Check and install mariadb
-check_or_install_app "mariadb" "mariadb" "sudo apt install mariadb-server -y"
-sudo mariadb-secure-installation || handle_error "Failed to execute maridb-secure-installation"
+# Check and install preqrequisites
+echo -e "\e[34mChecking prerequisites (curl, wget, zip, git, apache2, mariadb-server, mariadb-client, and php modules)...\e[0m"
+sudo apt install curl wget zip git apache2 mariadb-server mariadb-client php php-curl php-common php-gmp php-mbstring php-gd php-xml php-mysql php-ldap php-pear -y || handle_error "Failed to install prerequisites"
+
+# Configure mysql/mariadb
+sudo mysql_secure_installation || handle_error "Failed to execute mysql_secure_installation, are you root?"
 
 # Prompt for DB name with default
-read -p "Enter database name (default 'semaphore_db'): " DB_NAME
-DB_NAME=${DB_NAME:-semaphore_db}
+read -p "Enter database name (default 'phpipam'): " DB_NAME
+DB_NAME=${DB_NAME:-phpipam}
 echo -e "\e[32mDatabase Name: $DB_NAME\e[0m"
 
 # Prompt for DB user with default
-read -p "Enter database user (default 'semaphore_user'): " DB_USER
-DB_USER=${DB_USER:-semaphore_user}
+read -p "Enter database user (default 'phpipamadmin'): " DB_USER
+DB_USER=${DB_USER:-phpipamadmin}
 echo -e "\e[32mDatabase User: $DB_USER\e[0m"
 
 # Prompt for password (no default, but confirm match)
@@ -72,7 +44,7 @@ done
 echo -e "\e[32mPassword confirmed.\e[0m"
 
 # Confirm before proceeding
-echo -e "\e[34mCreating MariaDB database and user...\e[0m"
+echo -e "\e[34mCreating MySQL database and user...\e[0m"
 
 # Run the SQL using heredoc
 sudo mariadb <<EOF
@@ -83,18 +55,42 @@ EOF
 
 echo -e "\e[32mDatabase $DB_NAME and user $DB_USER created successfully.\e[0m"
 
-# Check and install mariadb
-check_or_install_app "semaphore setup" "semaphore" "wget https://github.com/semaphoreui/semaphore/releases/download/v2.12.4/semaphore_2.12.4_linux_amd64.deb"
-sudo sudo dpkg -i semaphore_2.12.4_linux_amd64.deb || handle_error "Failed to unpack semaphore_2.12.4_linux_amd64.deb"
+# git clone phpipam to the webroot
+echo -e "\e[34mCloning phpIPAM git...\e[0m"
+sudo git clone https://github.com/phpipam/phpipam.git /var/www/html/phpipam
 
-echo -e "\e[34mSetting up semaphore environment...\e[0m"
-semaphore setup
-sudo mkdir /etc/semaphore || handle_error "Failed to create /etc/semaphore"
-sudo mv config.json /etc/semaphore/config.json || handle_error "Failed to move config.json to /etc/semaphore"
+echo -e "\e[34mOrganizing phpIPAM config...\e[0m"
+sudo chown -R root:root /var/www/html/phpipam || handle_error "Failed to change ownership on dir: /var/www/html/phpipam"
+sudo cp /var/www/html/phpipam/config.dist.php /var/www/html/phpipam/config.php || handle_error "Failed to copy and rename: /var/www/html/phpipam/config.dist.php >> /var/www/html/phpipam/config.php"
+sed -i \
+  -e "s/^\(\$db\['user'\] = \).*/\1'${DB_USER}';/" \
+  -e "s/^\(\$db\['pass'\] = \).*/\1'${DB_PASS}';/" \
+  -e "s/^\(\$db\['name'\] = \).*/\1'${DB_NAME}';/" \
+  -e "/^\$db\['port'\] = 3306;/a define('BASE', \"/phpipam/\");" \
+  /var/www/html/phpipam/config.php || handle_error "Failed to organize and modify file: /var/www/html/phpipam/config.php"
 
-echo -e "\e[34mCreating semaphore service...\e[0m"
-sudo wget https://raw.githubusercontent.com/KevinRexFromDk/ansible/refs/heads/main/semaphore.service -O /etc/systemd/system/semaphore.service || handle_error "Unable to retrieve semaphore.service - check your network connection"
-sudo systemctl start semaphore
-sudo systemctl enable semaphore
 
-sudo rm -f $(pwd)/semaphore_2.12.4_linux_amd64.deb
+echo -e "\e[34mEnabling apache2 mod_rewrite\e[0m"
+sudo a2enmod rewrite || handle_error "Failed to enable apache2 mod_rewrite"
+echo -e "\e[32mSuccess\e[0m"
+
+echo -e "\e[34mRestarting Apache2...\e[0m"
+sudo systemctl restart apache2 || handle_error "Unable to restart service: apache2.service"
+echo -e "\e[32mphpIPAM install done\e[0m"
+
+echo -e "\e[32mUse the following to finish phpIPAM configuration:
+ 1. Go to http://$(hostname -I | awk '{print $1}')/phpipam
+ 2. Click 'New phpipam installation' button
+ 3. Click 'Automatic database installation'
+ 4. Insert the following information:
+     MYSQL Username: $DB_USER
+     MYSQL Password: [Hidden]
+     MYSQL Location: 127.0.0.1
+     MYSQL DB name: $DB_NAME
+ 5. Click 'Show advanced options' button
+  5.1 Uncheck 'Create new database' and 'Set permissions to tables'
+  5.2 Click the 'Install phpipam database' button
+ 6. Click 'Proceed to login' and login with username 'admin' and associated password you set earlier
+
+Enjoy phpIPAM!
+\e[0m"
