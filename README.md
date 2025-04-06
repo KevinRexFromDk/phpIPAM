@@ -61,7 +61,7 @@ Confirm password: P@ssw0rd
 # 📝 Post-Installation
 Once the script completes, you can finish the phpIPAM configuration by following these steps:
  1. Navigate to http://YOUR-SERVER-IP/phpipam
- 2. Click the "New phpIPAM installation" button
+ 2. Click the "**New phpIPAM installation**" button
  3. Click "Automatic database installation"
  4. Insert the following details:
      - MySQL Username
