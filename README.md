@@ -19,14 +19,14 @@ wget https://raw.githubusercontent.com/KevinRexFromDk/phpIPAM/refs/heads/main/ph
 Once the script is downloaded, you'll need to make it executable. Use the following command:
 
 ```bash
-sudo chmod +x phpipam-autoinstall.sh
+sudo chmod +x phpIPAM-autoinstall.sh
 ```
 
 # 🚀 Running the Script
 After changing the script's permissions, you can run it with the following command:
 
 ```bash
-sudo ./phpipam-autoinstall.sh
+sudo ./phpIPAM-autoinstall.sh
 ```
 The script will prompt you to enter the following details during the installation process:
  1. Database Name (default: **phpipam**)
