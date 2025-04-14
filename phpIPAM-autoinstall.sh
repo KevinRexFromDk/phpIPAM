@@ -1,33 +1,24 @@
 #!/bin/bash
 
-# Function to handle errors
 handle_error() {
-    echo -e "\e[31mError: $1\e[0m"  # Print error in red
-    exit 1  # Exit the script with an error status
+    echo -e "\e[31mError: $1\e[0m"
+    exit 1
 }
-
-# Update and upgrade the system
 echo -e "\e[34mUpdating and upgrading the system...\e[0m"
 sudo apt-get update -y && sudo apt-get upgrade -y || handle_error "System update/upgrade failed."
 
-# Check and install preqrequisites
 echo -e "\e[34mChecking prerequisites (curl, wget, zip, git, apache2, mariadb-server, mariadb-client, and php modules)...\e[0m"
 sudo apt install curl wget zip git apache2 mariadb-server mariadb-client php php-curl php-common php-gmp php-mbstring php-gd php-xml php-mysql php-ldap php-pear -y || handle_error "Failed to install prerequisites"
-
-# Configure mysql/mariadb
 sudo mysql_secure_installation || handle_error "Failed to execute mysql_secure_installation, are you root?"
 
-# Prompt for DB name with default
 read -p "Enter database name (default 'phpipam'): " DB_NAME
 DB_NAME=${DB_NAME:-phpipam}
 echo -e "\e[32mDatabase Name: $DB_NAME\e[0m"
 
-# Prompt for DB user with default
 read -p "Enter database user (default 'phpipamadmin'): " DB_USER
 DB_USER=${DB_USER:-phpipamadmin}
 echo -e "\e[32mDatabase User: $DB_USER\e[0m"
 
-# Prompt for password (no default, but confirm match)
 while true; do
     read -s -p "Enter password for user '$DB_USER': " DB_PASS
     echo
@@ -43,10 +34,8 @@ while true; do
 done
 echo -e "\e[32mPassword confirmed.\e[0m"
 
-# Confirm before proceeding
 echo -e "\e[34mCreating MySQL database and user...\e[0m"
 
-# Run the SQL using heredoc
 sudo mariadb <<EOF
 CREATE DATABASE $DB_NAME;
 GRANT ALL PRIVILEGES ON $DB_NAME.* TO $DB_USER@localhost IDENTIFIED BY '$DB_PASS';
@@ -55,7 +44,6 @@ EOF
 
 echo -e "\e[32mDatabase $DB_NAME and user $DB_USER created successfully.\e[0m"
 
-# git clone phpipam to the webroot
 echo -e "\e[34mCloning phpIPAM git...\e[0m"
 sudo git clone https://github.com/phpipam/phpipam.git /var/www/html/phpipam
 
@@ -91,6 +79,4 @@ echo -e "\e[32mUse the following to finish phpIPAM configuration:
   5.1 Uncheck 'Create new database' and 'Set permissions to tables'
   5.2 Click the 'Install phpipam database' button
  6. Click 'Proceed to login' and login with username 'admin' and associated password you set earlier
-
-Enjoy phpIPAM!
 \e[0m"
