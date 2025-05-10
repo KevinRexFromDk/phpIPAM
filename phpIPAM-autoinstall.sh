@@ -36,9 +36,10 @@ echo -e "\e[32mPassword confirmed.\e[0m"
 
 echo -e "\e[34mCreating MySQL database and user...\e[0m"
 
-sudo mariadb <<EOF
+mysql -u root -p<<EOF
 CREATE DATABASE $DB_NAME;
-GRANT ALL PRIVILEGES ON $DB_NAME.* TO $DB_USER@localhost IDENTIFIED BY '$DB_PASS';
+CREATE USER '$DB_USER'@'localhost' IDENTIFIED BY '$DB_PASS';
+GRANT ALL ON $DB_NAME.* TO '$DB_USER'@'localhost';
 FLUSH PRIVILEGES;
 EOF
 
@@ -48,7 +49,7 @@ echo -e "\e[34mCloning phpIPAM git...\e[0m"
 sudo git clone https://github.com/phpipam/phpipam.git /var/www/html/phpipam
 
 echo -e "\e[34mOrganizing phpIPAM config...\e[0m"
-sudo chown -R root:root /var/www/html/phpipam || handle_error "Failed to change ownership on dir: /var/www/html/phpipam"
+sudo chown -R www-data:www-data /var/www/html/phpipam || handle_error "Failed to change ownership on dir: /var/www/html/phpipam"
 sudo cp /var/www/html/phpipam/config.dist.php /var/www/html/phpipam/config.php || handle_error "Failed to copy and rename: /var/www/html/phpipam/config.dist.php >> /var/www/html/phpipam/config.php"
 sed -i \
   -e "s/^\(\$db\['user'\] = \).*/\1'${DB_USER}';/" \
