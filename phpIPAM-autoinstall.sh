@@ -55,7 +55,7 @@ sed -i \
   -e "s/^\(\$db\['user'\] = \).*/\1'${DB_USER}';/" \
   -e "s/^\(\$db\['pass'\] = \).*/\1'${DB_PASS}';/" \
   -e "s/^\(\$db\['name'\] = \).*/\1'${DB_NAME}';/" \
-  -e "/^\$db\['port'\] = 3306;/a define('BASE', \"/phpipam/\");" \
+#  -e "/^\$db\['port'\] = 3306;/a define('BASE', \"/phpipam/\");" \
   /var/www/html/phpipam/config.php || handle_error "Failed to organize and modify file: /var/www/html/phpipam/config.php"
 
 
